@@ -24,8 +24,14 @@ def process_data(input_file):
 #x being the learning features
 #y being the outcome you're measuring
 
+# Predicting dead versus alive
 x_file = "../data/dead_or_alive/x_balanced.csv"
 y_file = "../data/dead_or_alive/y_balanced_two_col.csv"
+
+# Predicting cause of death out of 8 options
+# x_file = "../data/cause_of_death_balanced8way/x_balanced8way.csv"
+# y_file = "../data/cause_of_death_balanced8way/y_balanced8way.csv"
+
 x_header, x_data = process_data(x_file)
 y_header, y_data = process_data(y_file)
 
