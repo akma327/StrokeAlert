@@ -1,7 +1,7 @@
 import theano
 from theano import tensor as T
 import numpy as np
-import matplotlib.pyplot as pl
+# import matplotlib.pyplot as pl
 import random
 from sklearn.decomposition import PCA
 
@@ -30,6 +30,7 @@ x_header, x_data = process_data(x_file)
 y_header, y_data = process_data(y_file)
 
 #initialize variables
+PARTITION_RATIO = 0.8 # Percent of the entire data set to treat as training data 
 HU1 = 5 #number of hidden units, in general should not exceed number of learning features or it will overfit. If HU=1 then the network effectively becomes logistic regression
 SCALE = 0.01 #no need to change this
 LAMBDA = 0.01 #regularization constant, increase to reduce overfitting. I usually set this between 0.001 to 0.1 
@@ -84,10 +85,14 @@ for r in range(REPS):
     x_data_r, y_data_r = zip(*temp)
     x_data = np.asarray(x_data_r)
     y_data = np.asarray(y_data_r)
-    trX = x_data[:len(x_data)*0.8]
-    teX = x_data[len(x_data)*0.8:]
-    trY = y_data[:len(y_data)*0.8]
-    teY = y_data[len(y_data)*0.8:]
+
+    x_partition_idx = int(len(x_data)*PARTITION_RATIO)
+    y_partition_idx = int(len(y_data)*PARTITION_RATIO)
+
+    trX = x_data[:x_partition_idx]
+    teX = x_data[x_partition_idx:]
+    trY = y_data[:y_partition_idx]
+    teY = y_data[y_partition_idx:]
 
     
     #Initialize both weight matrices
@@ -111,7 +116,8 @@ for r in range(REPS):
         for start, end in zip(range(0,len(trX),128), range(128,len(trX),128)):
             cost = train(trX[start:end], trY[start:end]) 
         if(i % 50 == 0):
-            print i, cost, np.mean(np.argmax(teY, axis=1) == np.argmax(predict(teX), axis=1))
+            prediction_accuracy = np.mean(np.argmax(teY, axis=1) == np.argmax(predict(teX), axis=1))
+            print("REP: %s EPOCH: %s COST: %s PRED_ACCURACY: %s" % (r, i, cost, prediction_accuracy))
         cc.append(cost)
         acc.append(np.mean(np.argmax(teY, axis=1) == np.argmax(predict(teX), axis=1)))
         
@@ -130,7 +136,7 @@ print "Hidden units: ", HU1
 print "Regularization constant (lambda): ", LAMBDA
 print "Number of repetitions: ", REPS
 print "Mean Classification Accuracy: ", np.mean(acc_all), " (SD = ", np.std(acc_all), ")"
-print "Max Accuracy: ", max(acc_all)
+print "Max Accuracy: ", np.max(acc_all)
 
 print "**********END****************************"
 print "To see classification accuracy of all runs, type 'acc_all'. To plot the cost function of all runs, type '%pylab' in iPython then type 'pl.plot(cc_all.transpose()). To plot the cost function of a particular run, type 'pl.plot(cc_all.transpose()[run_number])'" 
